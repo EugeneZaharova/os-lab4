@@ -29,6 +29,7 @@ std::string StringReverse(std::string str);
 bool IsCharNum(char sym);
 std::string UNumToString(size_t num);
 size_t StringToUNum(std::string str);
+bool MappingRefresh(FileMapping *mapping, size_t *pos, size_t *page, size_t max_mapping);
 
 std::string GetRange(std::string filename, size_t max_mapping);
 std::string SearchInFilePrefix(std::string filename, std::string substr, size_t max_mapping);
