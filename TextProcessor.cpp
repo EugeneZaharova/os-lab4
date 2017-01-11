@@ -204,18 +204,18 @@ string GetPath(string path) {
 	path.resize(last_slash + 1);
 	return path;
 }
-bool MappingRefresh(FileMapping *mapping, size_t *pos, size_t *page, size_t max_mapping) {
+bool MappingRefresh(FileMapping *mapping, size_t *pos, size_t *page, Settings *settings) {
 	if (*page + *pos >= mapping->FileSize) {
-		munmap(mapping->DataPtr, max_mapping);
+		munmap(mapping->DataPtr, settings->MaxMapping);
 		return false;
 	}
-	if (*pos < max_mapping) {
+	if (*pos < settings->MaxMapping) {
 		return true;
 	}
-	munmap(mapping->DataPtr, max_mapping);
+	munmap(mapping->DataPtr, settings->MaxMapping);
 	*pos = 0;
-	*page += max_mapping;
-	mapping->DataPtr = (char *) mmap(NULL, max_mapping, PROT_READ, MAP_PRIVATE, mapping->fd, *page);
+	*page += settings->MaxMapping;
+	mapping->DataPtr = (char *) mmap(NULL, settings->MaxMapping, PROT_READ, MAP_PRIVATE, mapping->fd, *page);
 	if (mapping->DataPtr == MAP_FAILED) {
 		cout << MAPPING_FATAL_ERROR_MESSAGE;
 		munmap(mapping->DataPtr, mapping->fd);
@@ -229,7 +229,7 @@ MAIN FUNCTIONS
 ================================
 */
 
-string GetRange(string filename, size_t max_mapping) {
+string GetRange(string filename, Settings *settings) {
 	const size_t alphabet_len = 256;
 	size_t arr[alphabet_len];
 	for (size_t i = 0; i < alphabet_len; i++) {
@@ -245,18 +245,18 @@ string GetRange(string filename, size_t max_mapping) {
 	mapping.FileSize = FileSize(filename);
 	size_t page = 0;
 	while (page < mapping.FileSize) {
-		mapping.DataPtr = (char *) mmap(NULL, max_mapping, PROT_READ, MAP_PRIVATE, mapping.fd, page);
+		mapping.DataPtr = (char *) mmap(NULL, settings->MaxMapping, PROT_READ, MAP_PRIVATE, mapping.fd, page);
 		if (mapping.DataPtr == MAP_FAILED) {
 			result = MAPPING_FATAL_ERROR_MESSAGE;
 			munmap(mapping.DataPtr, mapping.fd);
 			close(mapping.fd);
 			return result;
 		}
-		for (size_t i = 0; i < max_mapping; i++) {
+		for (size_t i = 0; i < settings->MaxMapping; i++) {
 			arr[(size_t) mapping.DataPtr[i]]++;
 		}
-		munmap(mapping.DataPtr, max_mapping);
-		page += max_mapping;
+		munmap(mapping.DataPtr, settings->MaxMapping);
+		page += settings->MaxMapping;
 	}
 	close(mapping.fd);
 	for (size_t i = 0; i < alphabet_len; i++) {
@@ -275,7 +275,7 @@ string GetRange(string filename, size_t max_mapping) {
 	return result;
 }
 
-string SearchInFilePrefix(string filename, string substr, size_t max_mapping) {
+string SearchInFilePrefix(string filename, string substr, Settings *settings) {
 	FileMapping mapping;
 	string result = "";
 	const char *filename_bas = filename.c_str();
@@ -296,14 +296,14 @@ string SearchInFilePrefix(string filename, string substr, size_t max_mapping) {
 	size_t current_col = 0;
 	size_t current_row = 0;
 	while (page < mapping.FileSize) {
-		mapping.DataPtr = (char *) mmap(NULL, max_mapping, PROT_READ, MAP_PRIVATE, mapping.fd, page);
+		mapping.DataPtr = (char *) mmap(NULL, settings->MaxMapping, PROT_READ, MAP_PRIVATE, mapping.fd, page);
 		if (mapping.DataPtr == MAP_FAILED) {
 			result = MAPPING_FATAL_ERROR_MESSAGE;
 			munmap(mapping.DataPtr, mapping.fd);
 			close(mapping.fd);
 			return result;
 		}
-		for (size_t i = 0; i < max_mapping; i++) {
+		for (size_t i = 0; i < settings->MaxMapping; i++) {
 			if (ignore) {
 				if (mapping.DataPtr[i] == '\n') {
 					col = 1;
@@ -340,8 +340,8 @@ string SearchInFilePrefix(string filename, string substr, size_t max_mapping) {
 				col++;
 			}
 		}
-		munmap(mapping.DataPtr, max_mapping);
-		page += max_mapping;
+		munmap(mapping.DataPtr, settings->MaxMapping);
+		page += settings->MaxMapping;
 	}
 	close(mapping.fd);
 	if (found) {
@@ -353,7 +353,7 @@ string SearchInFilePrefix(string filename, string substr, size_t max_mapping) {
 	return result;
 }
 
-string SearchInFilePostfix(string filename, string substr, size_t max_mapping) {
+string SearchInFilePostfix(string filename, string substr, Settings *settings) {
 	FileMapping mapping;
 	string result = "";
 	const char *filename_bas = filename.c_str();
@@ -375,14 +375,14 @@ string SearchInFilePostfix(string filename, string substr, size_t max_mapping) {
 	arr_tmp.resize(substr.size());
 	size_t nw_pos = arr_tmp.size() - 1;
 	while (page < mapping.FileSize) {
-		mapping.DataPtr = (char *) mmap(NULL, max_mapping, PROT_READ, MAP_PRIVATE, mapping.fd, page);
+		mapping.DataPtr = (char *) mmap(NULL, settings->MaxMapping, PROT_READ, MAP_PRIVATE, mapping.fd, page);
 		if (mapping.DataPtr == MAP_FAILED) {
 			result = MAPPING_FATAL_ERROR_MESSAGE;
 			munmap(mapping.DataPtr, mapping.fd);
 			close(mapping.fd);
 			return result;
 		}
-		for (size_t i = 0; i < max_mapping; i++) {
+		for (size_t i = 0; i < settings->MaxMapping; i++) {
 			if (IsSeparator(mapping.DataPtr[i])) {
 				found = true;
 				for (size_t i = 0; i < (size_t) substr.size(); i++) {
@@ -412,8 +412,8 @@ string SearchInFilePostfix(string filename, string substr, size_t max_mapping) {
 				nw_pos--;
 			}
 		}
-		munmap(mapping.DataPtr, max_mapping);
-		page += max_mapping;
+		munmap(mapping.DataPtr, settings->MaxMapping);
+		page += settings->MaxMapping;
 	}
 	close(mapping.fd);
 	if (found) {
@@ -425,7 +425,7 @@ string SearchInFilePostfix(string filename, string substr, size_t max_mapping) {
 	return result;
 }
 
-string SearchInFileBasic(string filename, string substr, size_t max_mapping) {
+string SearchInFileBasic(string filename, string substr, Settings *settings) {
 	FileMapping mapping;
 	string result = "";
 	const char *filename_bas = filename.c_str();
@@ -449,14 +449,14 @@ string SearchInFileBasic(string filename, string substr, size_t max_mapping) {
 	cols[cols.size() - 1] = 1;
 	rows[rows.size() - 1] = 1;
 	while (page < mapping.FileSize) {
-		mapping.DataPtr = (char *) mmap(NULL, max_mapping, PROT_READ, MAP_PRIVATE, mapping.fd, page);
+		mapping.DataPtr = (char *) mmap(NULL, settings->MaxMapping, PROT_READ, MAP_PRIVATE, mapping.fd, page);
 		if (mapping.DataPtr == MAP_FAILED) {
 			result = MAPPING_FATAL_ERROR_MESSAGE;
 			munmap(mapping.DataPtr, mapping.fd);
 			close(mapping.fd);
 			return result;
 		}
-		for (size_t i = 0; i < max_mapping; i++) {
+		for (size_t i = 0; i < settings->MaxMapping; i++) {
 			for (size_t j = nw_pos + 1; j < (size_t) arr_tmp.size(); j++) {
 				arr_tmp[j - 1] = arr_tmp[j];
 			}
@@ -491,8 +491,8 @@ string SearchInFileBasic(string filename, string substr, size_t max_mapping) {
 				cols[cols.size() - 1]++;
 			}
 		}
-		munmap(mapping.DataPtr, max_mapping);
-		page += max_mapping;
+		munmap(mapping.DataPtr, settings->MaxMapping);
+		page += settings->MaxMapping;
 	}
 	close(mapping.fd);
 	if (found) {
@@ -504,7 +504,7 @@ string SearchInFileBasic(string filename, string substr, size_t max_mapping) {
 	return result;
 }
 
-string EditWrite(string filename, size_t row, size_t col, string text, size_t max_mapping) {
+string EditWrite(string filename, size_t row, size_t col, string text, Settings *settings) {
 	string result = "";
 	FileMapping mapping;
 	const char *filename_bas = filename.c_str();
@@ -525,7 +525,7 @@ string EditWrite(string filename, size_t row, size_t col, string text, size_t ma
 	file_tmp = fopen(filename_tmp_bas, "w");
 	size_t current_row = 1;
 	size_t current_col = 1;
-	mapping.DataPtr = (char *) mmap(NULL, max_mapping, PROT_READ, MAP_PRIVATE, mapping.fd, page);
+	mapping.DataPtr = (char *) mmap(NULL, settings->MaxMapping, PROT_READ, MAP_PRIVATE, mapping.fd, page);
 	if (mapping.DataPtr == MAP_FAILED) {
 		result = MAPPING_FATAL_ERROR_MESSAGE;
 		munmap(mapping.DataPtr, mapping.fd);
@@ -534,7 +534,7 @@ string EditWrite(string filename, size_t row, size_t col, string text, size_t ma
 	}
 	size_t pos = 0;
 	while (current_row < row || (current_row == row && current_col < col)) {
-		if (!MappingRefresh(&mapping, &pos, &page, max_mapping)) {
+		if (!MappingRefresh(&mapping, &pos, &page, settings)) {
 			break;
 		}
 		if (mapping.DataPtr[pos] == '\n') {
@@ -550,7 +550,7 @@ string EditWrite(string filename, size_t row, size_t col, string text, size_t ma
 		char tmp = text[(int) i];
 		fwrite(&tmp, sizeof(char), 1, file_tmp);
 	}
-	while (MappingRefresh(&mapping, &pos, &page, max_mapping)) {
+	while (MappingRefresh(&mapping, &pos, &page, settings)) {
 		fwrite(&(mapping.DataPtr[pos]), sizeof(char), 1, file_tmp);
 		pos++;
 	}
@@ -562,7 +562,7 @@ string EditWrite(string filename, size_t row, size_t col, string text, size_t ma
 	return "Edit (Write): Success\n";
 }
 
-string EditDelete(string filename, size_t row, size_t col, size_t cnt, size_t max_mapping) {
+string EditDelete(string filename, size_t row, size_t col, size_t cnt, Settings *settings) {
 	string result = "";
 
 	FileMapping mapping;
@@ -584,7 +584,7 @@ string EditDelete(string filename, size_t row, size_t col, size_t cnt, size_t ma
 	file_tmp = fopen(filename_tmp_bas, "w");
 	size_t current_row = 1;
 	size_t current_col = 1;
-	mapping.DataPtr = (char *) mmap(NULL, max_mapping, PROT_READ, MAP_PRIVATE, mapping.fd, page);
+	mapping.DataPtr = (char *) mmap(NULL, settings->MaxMapping, PROT_READ, MAP_PRIVATE, mapping.fd, page);
 	if (mapping.DataPtr == MAP_FAILED) {
 		result = MAPPING_FATAL_ERROR_MESSAGE;
 		munmap(mapping.DataPtr, mapping.fd);
@@ -593,7 +593,7 @@ string EditDelete(string filename, size_t row, size_t col, size_t cnt, size_t ma
 	}
 	size_t pos = 0;
 	while (current_row < row || (current_row == row && current_col < col)) {
-		if (!MappingRefresh(&mapping, &pos, &page, max_mapping)) {
+		if (!MappingRefresh(&mapping, &pos, &page, settings)) {
 			break;
 		}
 		if (mapping.DataPtr[pos] == '\n') {
@@ -606,7 +606,7 @@ string EditDelete(string filename, size_t row, size_t col, size_t cnt, size_t ma
 		pos++;
 	}
 	size_t pos_tmp = page + pos + cnt;
-	while (MappingRefresh(&mapping, &pos, &page, max_mapping)) {
+	while (MappingRefresh(&mapping, &pos, &page, settings)) {
 		if (page + pos >= pos_tmp) {
 			fwrite(&(mapping.DataPtr[pos]), sizeof(char), 1, file_tmp);
 		}

@@ -28,6 +28,12 @@
 *.out
 *.app
 
+# Test apps
+*.test
+test.*
+Test.*
+TEST.*
+
 handler
 os-lab4
 in.txt

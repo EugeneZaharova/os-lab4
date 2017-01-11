@@ -17,6 +17,21 @@ public:
 	char *DataPtr;
 };
 
+class Settings {
+public:
+	bool IsFileLenLimit;
+	size_t MinLength;
+	size_t MaxLength;
+	size_t MaxMapping;
+
+	Settings() {
+		IsFileLenLimit = false;
+		MinLength = 0;
+		MaxLength = 0;
+		MaxMapping = 256;
+	}
+};
+
 bool IsSeparator(char sym);
 size_t ConvertToBytes(size_t num, size_t unit);
 size_t FileSize(std::string filename);
@@ -29,15 +44,15 @@ bool IsCharNum(char sym);
 bool IsStringNum(std::string str);
 std::string UNumToString(size_t num);
 size_t StringToUNum(std::string str);
-bool MappingRefresh(FileMapping *mapping, size_t *pos, size_t *page, size_t max_mapping);
+bool MappingRefresh(FileMapping *mapping, size_t *pos, size_t *page, Settings *settings);
 
-std::string GetRange(std::string filename, size_t max_mapping);
-std::string SearchInFilePrefix(std::string filename, std::string substr, size_t max_mapping);
-std::string SearchInFilePostfix(std::string filename, std::string substr, size_t max_mapping);
-std::string SearchInFileBasic(std::string filename, std::string substr, size_t max_mapping);
+std::string GetRange(std::string filename, Settings *settings);
+std::string SearchInFilePrefix(std::string filename, std::string substr, Settings *settings);
+std::string SearchInFilePostfix(std::string filename, std::string substr, Settings *settings);
+std::string SearchInFileBasic(std::string filename, std::string substr, Settings *settings);
 std::string EditWrite(std::string filename, size_t row, size_t col,
-				  std::string text, size_t max_mapping);
+				  std::string text, Settings *settings);
 std::string EditDelete(std::string filename, size_t row, size_t col,
-				   size_t cnt, size_t max_mapping);
+				   size_t cnt, Settings *settings);
 
 #endif // TEXTPROCESSOR_H

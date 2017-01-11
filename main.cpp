@@ -6,25 +6,6 @@
 
 using namespace std;
 
-class Settings {
-public:
-	string Filename;
-	bool IsFileLenLimit;
-	size_t MinLength;
-	size_t MaxLength;
-	short int SearchMode;
-	size_t MaxMapping;
-
-	Settings() {
-		Filename = "";
-		IsFileLenLimit = false;
-		MinLength = 0;
-		MaxLength = 0;
-		SearchMode = 0;
-		MaxMapping = 256;
-	}
-};
-
 string GetManual(bool is_interactive) {
 	string res = "";
 	res += "Список команд:\n";
@@ -47,7 +28,7 @@ string GetManual(bool is_interactive) {
 
 //Action console
 string ConsolePerformer(string command, Settings *settings) {
-	size_t max_mapping = settings->MaxMapping;
+	//size_t max_mapping = settings->MaxMapping;
 	command = RemoveSpecial(command);
 	string action = GetParameter(command, 0);
 	if (action == "help") {
@@ -68,7 +49,7 @@ string ConsolePerformer(string command, Settings *settings) {
 		if ((size > max || size < min) && is_limit) {
 			return "File size is out of range\n";
 		}
-		return GetRange(filename, max_mapping);
+		return GetRange(filename, settings);
 	} else if (action == "search") {
 		string filename = GetParameter(command, 1);
 		if (!IsFileExists(filename)) {
@@ -89,11 +70,11 @@ string ConsolePerformer(string command, Settings *settings) {
 		string substr = GetParameter(command, 3);
 
 		if (type == "basic") {
-			return SearchInFileBasic(filename, substr, max_mapping);
+			return SearchInFileBasic(filename, substr, settings);
 		} else if (type == "prefix") {
-			return SearchInFilePrefix(filename, substr, max_mapping);
+			return SearchInFilePrefix(filename, substr, settings);
 		} else if (type == "postfix") {
-			return SearchInFilePostfix(filename, substr, max_mapping);
+			return SearchInFilePostfix(filename, substr, settings);
 		} else {
 			return "Parameter is incorrect\n";
 		}
@@ -117,7 +98,7 @@ string ConsolePerformer(string command, Settings *settings) {
 		size_t row = StringToUNum(GetParameter(command, 2));
 		size_t col = StringToUNum(GetParameter(command, 3));
 		string text = GetParameter(command, 4);
-		return EditWrite(filename, row, col, text, max_mapping);
+		return EditWrite(filename, row, col, text, settings);
 
 	} else if (action == "delete") {
 		string filename = GetParameter(command, 1);
@@ -140,7 +121,7 @@ string ConsolePerformer(string command, Settings *settings) {
 		size_t col = StringToUNum(GetParameter(command, 3));
 
 		size_t length = StringToUNum(GetParameter(command, 4));
-		return EditDelete(filename, row, col, length, max_mapping);
+		return EditDelete(filename, row, col, length, settings);
 
 	} else {
 		return "Unknown command: `" + command + "`\n";
