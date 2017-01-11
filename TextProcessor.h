@@ -4,7 +4,6 @@
 #include <string>
 #include <cstdio>
 #include <cstdlib>
-//#include <QFileInfo>
 #include <unistd.h>
 #include <sys/mman.h>
 #include <fcntl.h>

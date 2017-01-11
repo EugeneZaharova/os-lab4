@@ -44,29 +44,20 @@ string GetManual(bool is_interactive) {
 	
 	return res;
 }
+
 //Action console
 string ConsolePerformer(string command, Settings *settings) {
 	size_t max_mapping = settings->MaxMapping;
-	//max_mapping = ConvertToBytes(max_mapping, ui->SettingsMemoryLimitType->currentIndex());
-	//string command = ui->ConsoleIn->text();
-	//command = command.simplified();
 	command = RemoveSpecial(command);
-	//string action = command.section(' ', 0, 0);
 	string action = GetParameter(command, 0);
-	//cout << "Dbg: " << action << endl;
 	if (action == "help") {
 		return GetManual(true);
 
 	} else if (action == "range") {
-		//string filename = command.section(' ', 1, 1);
 		string filename = GetParameter(command, 1);
 		if (!IsFileExists(filename)) {
-			//ui->ConsoleOut->setText("Cannot open file\n");
-			//this->setCursor(Qt::ArrowCursor);
 			return "Cannot open file\n";
 		}
-		//size_t min = command.section(' ', 2, 2).toULongLong();
-		//size_t max = command.section(' ', 3, 3).toULongLong();
 		size_t min = StringToUNum(GetParameter(command, 2));
 		size_t max = StringToUNum(GetParameter(command, 3));
 		bool is_limit = true;
@@ -75,21 +66,14 @@ string ConsolePerformer(string command, Settings *settings) {
 		}
 		size_t size = FileSize(filename);
 		if ((size > max || size < min) && is_limit) {
-			//ui->ConsoleOut->setText("File size is out of range\n");
-			//this->setCursor(Qt::ArrowCursor);
 			return "File size is out of range\n";
 		}
 		return GetRange(filename, max_mapping);
 	} else if (action == "search") {
-		//string filename = command.section(' ', 1, 1);
 		string filename = GetParameter(command, 1);
 		if (!IsFileExists(filename)) {
-			//ui->ConsoleOut->setText("Cannot open file\n");
-			//this->setCursor(Qt::ArrowCursor);
 			return "Cannot open file\n";
 		}
-		//size_t min = command.section(' ', 4, 4).toULongLong();
-		//size_t max = command.section(' ', 5, 5).toULongLong();
 		size_t min = StringToUNum(GetParameter(command, 4));
 		size_t max = StringToUNum(GetParameter(command, 5));
 		bool is_limit = true;
@@ -98,18 +82,12 @@ string ConsolePerformer(string command, Settings *settings) {
 		}
 		size_t size = FileSize(filename);
 		if ((size > max || size < min) && is_limit) {
-			//ui->ConsoleOut->setText("File size is out of range\n");
-			//this->setCursor(Qt::ArrowCursor);
 			return "File size is out of range\n";
 		}
 
-		//string type = command.section(' ', 2, 2);
 		string type = GetParameter(command, 2);
-		/*string substr = command.section(' ', 3, 3);
-		substr = SetSpaces(substr);*/
 		string substr = GetParameter(command, 3);
 
-		//string res = "";
 		if (type == "basic") {
 			return SearchInFileBasic(filename, substr, max_mapping);
 		} else if (type == "prefix") {
@@ -119,18 +97,12 @@ string ConsolePerformer(string command, Settings *settings) {
 		} else {
 			return "Parameter is incorrect\n";
 		}
-		//return res;
 
 	} else if (action == "edit") {
-		//string filename = command.section(' ', 1, 1);
 		string filename = GetParameter(command, 1);
 		if (!IsFileExists(filename)) {
-			//ui->ConsoleOut->setText("Cannot open file\n");
-			//this->setCursor(Qt::ArrowCursor);
 			return "Cannot open file\n";
 		}
-		//size_t min = command.section(' ', 5, 5).toULongLong();
-		//size_t max = command.section(' ', 6, 6).toULongLong();
 		size_t min = StringToUNum(GetParameter(command, 5));
 		size_t max = StringToUNum(GetParameter(command, 6));
 		bool is_limit = true;
@@ -139,30 +111,19 @@ string ConsolePerformer(string command, Settings *settings) {
 		}
 		size_t size = FileSize(filename);
 		if ((size > max || size < min) && is_limit) {
-			//ui->ConsoleOut->setText("File size is out of range\n");
-			//this->setCursor(Qt::ArrowCursor);
 			return "File size is out of range\n";
 		}
 
-		//size_t row = command.section(' ', 2, 2).toULongLong();
-		//size_t col = command.section(' ', 3, 3).toULongLong();
-
 		size_t row = StringToUNum(GetParameter(command, 2));
 		size_t col = StringToUNum(GetParameter(command, 3));
-		//string text = command.section(' ', 4, 4);
 		string text = GetParameter(command, 4);
 		return EditWrite(filename, row, col, text, max_mapping);
 
 	} else if (action == "delete") {
-		//string filename = command.section(' ', 1, 1);
 		string filename = GetParameter(command, 1);
 		if (!IsFileExists(filename)) {
-			//ui->ConsoleOut->setText("Cannot open file\n");
-			//this->setCursor(Qt::ArrowCursor);
 			return "Cannot open file\n";
 		}
-		//size_t min = command.section(' ', 5, 5).toULongLong();
-		//size_t max = command.section(' ', 6, 6).toULongLong();
 
 		size_t min = StringToUNum(GetParameter(command, 5));
 		size_t max = StringToUNum(GetParameter(command, 6));
@@ -172,35 +133,18 @@ string ConsolePerformer(string command, Settings *settings) {
 		}
 		size_t size = FileSize(filename);
 		if ((size > max || size < min) && is_limit) {
-			//ui->ConsoleOut->setText("File size is out of range\n");
-			//this->setCursor(Qt::ArrowCursor);
 			return "File size is out of range\n";
 		}
 
-		//size_t row = command.section(' ', 2, 2).toULongLong();
-		//size_t col = command.section(' ', 3, 3).toULongLong();
 		size_t row = StringToUNum(GetParameter(command, 2));
 		size_t col = StringToUNum(GetParameter(command, 3));
 
-		//size_t length = command.section(' ', 4, 4).toULongLong();
 		size_t length = StringToUNum(GetParameter(command, 4));
 		return EditDelete(filename, row, col, length, max_mapping);
 
 	} else {
-		//ui->ConsoleOut->setText("Unknown command\n");
 		return "Unknown command: `" + command + "`\n";
 	}
-	//this->setCursor(Qt::ArrowCursor);
-
-	/*
-	this->setCursor(Qt::WaitCursor);
-	string filename = ui->InteractiveFileName->text();
-	if (!IsCurrentFileInRange(filename, ui)) {
-		ui->InteractiveResult->setText("File size is out of range\n");
-		return;
-	}
-	ui->InteractiveResult->setText(GetRange(filename));
-	this->setCursor(Qt::ArrowCursor); */
 }
 
 
@@ -210,25 +154,13 @@ int main(int argc, char* argv[]) {
 		cout << "ERROR: Parameters expected" << endl;
 		return 0;
 	}
-	/*cout << "-------------------------------------------\n";
-	cout << "Commands:\n";
-	cout << "s <value> - push Square to stack\n";
-	cout << "t <value> - push Trapeze to stack\n";
-	cout << "r <value> - push Rectangle to stack\n";
-	cout << "d - pop from stack and print popped item\n";
-	cout << "p - print stack\n";
-	cout << "q - exit\n";
-	cout << "-------------------------------------------\n";
-	//int cnt = 0;*/
 	string argv_1(argv[1]);
 	if (argv_1 == "-i" || argv_1 == "--interactive") {
-		//Settings *settings = new Settings();
 		Settings settings;
 		cout << "`help` - список команд" << endl << endl;
 		while (true) {
 			string cmd = "";
 			cout << ">>> ";
-			//cin >> cmd;
 			getline(cin, cmd);
 			if (cmd == "exit" || cmd.size() == 0) {
 				if (cmd.size() == 0) {
@@ -237,11 +169,9 @@ int main(int argc, char* argv[]) {
 				cout << "Goodbye!" << endl;
 				break;
 			}
-			//string result = GetParameter(cmd, 0)
 			string result = ConsolePerformer(cmd, &settings);
 			cout << result << endl;
 		}
-		//delete settings;
 	} else if (argv_1 == "-h" || argv_1 == "--help" || argv_1 == "help") {
 		cout << GetManual(false) << endl;
 	} else {
@@ -251,7 +181,6 @@ int main(int argc, char* argv[]) {
 			return 0;
 		}
 		size_t first_param = 1;
-		//string argv_2(argv[2]);
 		if (argv_1 == "-m") {
 			string max_mapping_str(argv[2]);
 			if (!IsStringNum(max_mapping_str)) {
