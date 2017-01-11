@@ -211,15 +211,15 @@ bool MappingRefresh(FileMapping *mapping, size_t *pos, size_t *page, size_t max_
 		return true;
 	}
 	munmap(mapping->DataPtr, max_mapping);
-	cout << "MappingRefreshLog" << endl;
-	cout << "MaxMapping = " << max_mapping << endl;
-	cout << "PosPrev = " << *pos << endl;
-	cout << "PagePrev = " << *page << endl;
+	//cout << "MappingRefreshLog" << endl;
+	//cout << "MaxMapping = " << max_mapping << endl;
+	//cout << "PosPrev = " << *pos << endl;
+	//cout << "PagePrev = " << *page << endl;
 	*pos = 0;
 	*page += max_mapping;
-	cout << "PosNew = " << *pos << endl;
-	cout << "PageNew = " << *page << endl;
-	cout << "=======================" << endl;
+	//cout << "PosNew = " << *pos << endl;
+	//cout << "PageNew = " << *page << endl;
+	//cout << "=======================" << endl;
 	//if (*page < mapping->FileSize) {
 	mapping->DataPtr = (char *) mmap(NULL, max_mapping, PROT_READ, MAP_PRIVATE, mapping->fd, *page);
 	return true;
@@ -523,7 +523,7 @@ string EditWrite(string filename, size_t row, size_t col, string text, size_t ma
 	}
 	mapping.FileSize = FileSize(filename);
 	size_t page = 0;
-	mapping.DataPtr = (char *) mmap(NULL, max_mapping, PROT_READ, MAP_PRIVATE, mapping.fd, page);
+	//mapping.DataPtr = (char *) mmap(NULL, max_mapping, PROT_READ, MAP_PRIVATE, mapping.fd, page);
 
 	
 	//QFileInfo file_info(filename);
@@ -551,13 +551,14 @@ string EditWrite(string filename, size_t row, size_t col, string text, size_t ma
 		if (mapping.DataPtr[pos] == '\n') {
 			current_col = 1;
 			current_row++;
-			pos++;
-			continue;
+			//pos++;
+			//continue;
+		} else {
+			current_col++;
 		}
-		current_col++;
-		char sym = (char) mapping.DataPtr[pos];
+		//char sym = (char) mapping.DataPtr[pos];
 		//cout << "Sym: " << sym << endl;
-		fwrite(&sym, sizeof(char), 1, file_tmp);
+		fwrite(&(mapping.DataPtr[pos]), sizeof(char), 1, file_tmp);
 		pos++;
 	}
 	for (size_t i = 0; i < (size_t) text.size(); i++) {
@@ -570,9 +571,9 @@ string EditWrite(string filename, size_t row, size_t col, string text, size_t ma
 		}
 	}*/
 	while (MappingRefresh(&mapping, &pos, &page, max_mapping)) {
-		char sym = (char) mapping.DataPtr[pos];
+		//char sym = (char) mapping.DataPtr[pos];
 		//cout << "Sym: " << sym << endl;
-		fwrite(&sym, sizeof(char), 1, file_tmp);
+		fwrite(&(mapping.DataPtr[pos]), sizeof(char), 1, file_tmp);
 		pos++;
 	}
 	//fclose(file);
@@ -585,51 +586,68 @@ string EditWrite(string filename, size_t row, size_t col, string text, size_t ma
 }
 
 string EditDelete(string filename, size_t row, size_t col, size_t cnt, size_t max_mapping) {
-    FILE *file;
-    string result = "";
-    const char *filename_bas = filename.c_str();
-    if ((file = fopen(filename_bas, "r")) == NULL) {
-        result = "Cannot open file\n";
-        return result;
-    }
-    //QFileInfo file_info(filename);
-    //string filename_tmp = file_info.absolutePath() + ".tmp_" + file_info.baseName();
-    string filename_tmp = GetPath(filename) + ".tmp_" + GetName(filename);
-    const char *filename_tmp_bas = filename_tmp.c_str();
-    FILE *file_tmp = fopen(filename_tmp_bas, "r");
-    if (file_tmp != NULL) {
-        fclose(file_tmp);
-        unlink(filename_tmp_bas);
-    }
-    file_tmp = fopen(filename_tmp_bas, "w");
+	string result = "";
+	/*FILE *file;
+	const char *filename_bas = filename.c_str();
+	if ((file = fopen(filename_bas, "r")) == NULL) {
+		result = "Cannot open file\n";
+		return result;
+	}*/
+	//QFileInfo file_info(filename);
+	//string filename_tmp = file_info.absolutePath() + ".tmp_" + file_info.baseName();
 
-    char sym;
-    size_t current_row = 1;
-    size_t current_col = 1;
-    while (current_row < row || (current_row == row && current_col < col)) {
-        if ((sym = fgetc(file)) == EOF) {
-            break;
-        }
-        if (sym == '\n') {
-            current_col = 1;
-            current_row++;
-            continue;
-        }
-        current_col++;
-        fwrite(&sym, sizeof(char), 1, file_tmp);
-    }
-    size_t i = 0;
-    while ((sym = fgetc(file)) != EOF) {
-        if (i < cnt) {
-            i++;
-            continue;
-        }
-        fwrite(&sym, sizeof(char), 1, file_tmp);
-    }
+	FileMapping mapping;
+	const char *filename_bas = filename.c_str();
+	if ((mapping.fd = open(filename_bas, O_RDONLY, 0)) < 0) {
+		result = "Cannot open file\n";
+		return result;
+	}
+	mapping.FileSize = FileSize(filename);
+	size_t page = 0;
+	//mapping.DataPtr = (char *) mmap(NULL, max_mapping, PROT_READ, MAP_PRIVATE, mapping.fd, page);
 
-    fclose(file);
-    fclose(file_tmp);
-    unlink(filename_bas);
-    rename(filename_tmp_bas, filename_bas);
-    return "Edit (Delete): Success\n";
+	string filename_tmp = GetPath(filename) + ".tmp_" + GetName(filename);
+	const char *filename_tmp_bas = filename_tmp.c_str();
+	FILE *file_tmp = fopen(filename_tmp_bas, "r");
+	if (file_tmp != NULL) {
+		fclose(file_tmp);
+		unlink(filename_tmp_bas);
+	}
+	file_tmp = fopen(filename_tmp_bas, "w");
+
+	//char sym;
+	size_t current_row = 1;
+	size_t current_col = 1;
+	mapping.DataPtr = (char *) mmap(NULL, max_mapping, PROT_READ, MAP_PRIVATE, mapping.fd, page);
+	size_t pos = 0;
+	while (current_row < row || (current_row == row && current_col < col)) {
+		if (!MappingRefresh(&mapping, &pos, &page, max_mapping)) {
+			break;
+		}
+		if (mapping.DataPtr[pos] == '\n') {
+			current_col = 1;
+			current_row++;
+			//pos++;
+			//continue;
+		} else {
+			current_col++;
+		}
+		fwrite(&(mapping.DataPtr[pos]), sizeof(char), 1, file_tmp);
+		pos++;
+	}
+	//size_t i = 0;
+	//while ((sym = fgetc(file)) != EOF) {
+	size_t pos_tmp = page + pos + cnt;
+	while (MappingRefresh(&mapping, &pos, &page, max_mapping)) {
+		if (page + pos >= pos_tmp) {
+			fwrite(&(mapping.DataPtr[pos]), sizeof(char), 1, file_tmp);
+		}
+		pos++;
+	}
+
+	//fclose(file);
+	fclose(file_tmp);
+	unlink(filename_bas);
+	rename(filename_tmp_bas, filename_bas);
+	return "Edit (Delete): Success\n";
 }
