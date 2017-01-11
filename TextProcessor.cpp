@@ -148,6 +148,14 @@ string StringReverse(std::string str) {
 bool IsCharNum(char sym) {
 	return sym >= '0' && sym <= '9';
 }
+bool IsStringNum(string str) {
+	for (size_t i = 0; i < str.size(); i++) {
+		if (!IsCharNum(str[i])) {
+			return false;
+		}
+	}
+	return true;
+}
 
 char UNumToChar(size_t num) {
 	return num + '0';

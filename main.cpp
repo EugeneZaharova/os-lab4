@@ -25,6 +25,25 @@ public:
 	}
 };
 
+string GetManual(bool is_interactive) {
+	string res = "";
+	res += "Список команд:\n";
+	res += "======================================\n";
+	if (is_interactive) {
+		res += "mem <size> - задать максимальный размер используемой оперативной памяти (байт)\n";
+	}
+	res += "range <file> [<min> <max>] - диапазон\n";
+	res += "search <file> prefix <substr> [<min> <max>] - поиск префикса\n";
+	res += "search <file> postfix <substr> [<min> <max>] - поиск суффикса\n";
+	res += "search <file > basic <substr> [<min> <max>] - обычный поиск\n";
+	res += "edit <file> <row> <col> <text> [<min> <max>] - вставка в заданную позицию\n";
+	res += "delete <file> <row> <col> <length> [<min> <max>]- удаление из заданной позиции\n";
+	res += "exit (или `Ctrl+D`)- выход\n\n";
+	res += "Перед пробелом используйте знак '\\'\n";
+	res += "--------------------------------------\n";
+	
+	return res;
+}
 //Action console
 string ConsolePerformer(string command, Settings *settings) {
 	size_t max_mapping = settings->MaxMapping;
@@ -36,19 +55,7 @@ string ConsolePerformer(string command, Settings *settings) {
 	string action = GetParameter(command, 0);
 	//cout << "Dbg: " << action << endl;
 	if (action == "help") {
-		string res = "";
-		res += "Список команд:\n";
-		res += "======================================\n";
-		res += "range <file> [<min> <max>] - диапазон\n";
-		res += "search <file> prefix <substr> [<min> <max>] - поиск префикса\n";
-		res += "search <file> postfix <substr> [<min> <max>] - поиск суффикса\n";
-		res += "search <file > basic <substr> [<min> <max>] - обычный поиск\n";
-		res += "edit <file> <row> <col> <text> [<min> <max>] - вставка в заданную позицию\n";
-		res += "delete <file> <row> <col> <length> [<min> <max>]- удаление из заданной позиции\n";
-		res += "exit (или `Ctrl+D`)- выход\n\n";
-		res += "Перед пробелом используйте знак '\\'\n";
-		res += "--------------------------------------\n";
-		return res;
+		return GetManual(true);
 
 	} else if (action == "range") {
 		//string filename = command.section(' ', 1, 1);
@@ -197,8 +204,12 @@ string ConsolePerformer(string command, Settings *settings) {
 }
 
 
-int main(void) {
+int main(int argc, char* argv[]) {
 	setlocale(LC_ALL, "russian");
+	if (argc < 2) {
+		cout << "ERROR: Parameters expected" << endl;
+		return 0;
+	}
 	/*cout << "-------------------------------------------\n";
 	cout << "Commands:\n";
 	cout << "s <value> - push Square to stack\n";
@@ -209,25 +220,58 @@ int main(void) {
 	cout << "q - exit\n";
 	cout << "-------------------------------------------\n";
 	//int cnt = 0;*/
-	Settings *settings = new Settings();
-	cout << "`help` - список команд" << endl << endl;
-	while (true) {
-		string cmd = "";
-		cout << ">>> ";
-		//cin >> cmd;
-		getline(cin, cmd);
-		if (cmd == "exit" || cmd.size() == 0) {
-			if (cmd.size() == 0) {
-				cout << "exit" << endl;
+	string argv_1(argv[1]);
+	if (argv_1 == "-i" || argv_1 == "--interactive") {
+		//Settings *settings = new Settings();
+		Settings settings;
+		cout << "`help` - список команд" << endl << endl;
+		while (true) {
+			string cmd = "";
+			cout << ">>> ";
+			//cin >> cmd;
+			getline(cin, cmd);
+			if (cmd == "exit" || cmd.size() == 0) {
+				if (cmd.size() == 0) {
+					cout << "exit" << endl;
+				}
+				cout << "Goodbye!" << endl;
+				break;
 			}
-			cout << "Goodbye!" << endl;
-			break;
+			//string result = GetParameter(cmd, 0)
+			string result = ConsolePerformer(cmd, &settings);
+			cout << result << endl;
 		}
-		//string result = GetParameter(cmd, 0)
-		string result = ConsolePerformer(cmd, settings);
+		//delete settings;
+	} else if (argv_1 == "-h" || argv_1 == "--help" || argv_1 == "help") {
+		cout << GetManual(false) << endl;
+	} else {
+		Settings settings;
+		if (argc < 3) {
+			cout << "ERROR: Uncorrect parameters" << endl;
+			return 0;
+		}
+		size_t first_param = 1;
+		//string argv_2(argv[2]);
+		if (argv_1 == "-m") {
+			string max_mapping_str(argv[2]);
+			if (!IsStringNum(max_mapping_str)) {
+				cout << "ERROR: Parameter `-m` is not `unsigned long long`" << endl;
+				return 0;
+			}
+			settings.MaxMapping = StringToUNum(max_mapping_str);
+			first_param = 3;
+		}
+		string cmd = "";
+		for (size_t i = first_param; i < argc; i++) {
+			string str_tmp(argv[i]);
+			if (i != first_param) {
+				cmd += " ";
+			}
+			cmd += str_tmp;
+		}
+		string result = ConsolePerformer(cmd, &settings);
 		cout << result << endl;
 	}
-	delete settings;
 
 	return 0;
 }

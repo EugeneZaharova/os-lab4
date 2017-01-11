@@ -27,6 +27,7 @@ std::string GetParameter(std::string str, size_t num);
 std::string RemoveSpecial(std::string str);
 std::string StringReverse(std::string str);
 bool IsCharNum(char sym);
+bool IsStringNum(std::string str);
 std::string UNumToString(size_t num);
 size_t StringToUNum(std::string str);
 bool MappingRefresh(FileMapping *mapping, size_t *pos, size_t *page, size_t max_mapping);
