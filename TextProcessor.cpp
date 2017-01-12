@@ -11,8 +11,6 @@
 
 using namespace std;
 
-const char SLASH = '/';
-const string MAPPING_FATAL_ERROR_MESSAGE = "Reading file: FATAL ERROR\n";
 
 /*
 ================================

@@ -6,12 +6,13 @@
 
 using namespace std;
 
-string GetManual(bool is_interactive) {
+string GetManual(bool is_interactive, Settings *settings) {
 	string res = "";
 	res += "Список команд:\n";
 	res += "======================================\n";
 	if (is_interactive) {
 		res += "mem <size> - задать максимальный размер используемой оперативной памяти (байт)\n";
+		res += "(текущее значение: " + UNumToString(settings->MaxMapping) + " байт)\n";
 	}
 	res += "range <file> [<min> <max>] - диапазон\n";
 	res += "search <file> prefix <substr> [<min> <max>] - поиск префикса\n";
@@ -28,11 +29,10 @@ string GetManual(bool is_interactive) {
 
 //Action console
 string ConsolePerformer(string command, Settings *settings) {
-	//size_t max_mapping = settings->MaxMapping;
 	command = RemoveSpecial(command);
 	string action = GetParameter(command, 0);
 	if (action == "help") {
-		return GetManual(true);
+		return GetManual(true, settings);
 
 	} else if (action == "range") {
 		string filename = GetParameter(command, 1);
@@ -76,7 +76,7 @@ string ConsolePerformer(string command, Settings *settings) {
 		} else if (type == "postfix") {
 			return SearchInFilePostfix(filename, substr, settings);
 		} else {
-			return "Parameter is incorrect\n";
+			return PARAMETER_INCORRECT_MESSAGE;
 		}
 
 	} else if (action == "edit") {
@@ -149,16 +149,32 @@ int main(int argc, char* argv[]) {
 				}
 				cout << "Goodbye!" << endl;
 				break;
+			} else if (GetParameter(cmd, 0) == "mem") {
+				string num_param = GetParameter(cmd, 1);
+				if (IsStringNum(num_param) && num_param != "") {
+					size_t tmp_val = StringToUNum(num_param);
+					if (tmp_val == 0) {
+						cout << "ERROR: Parameter can not be `0`" << endl << endl;
+						continue;
+					}
+					settings.MaxMapping = tmp_val;
+					cout << "Maximal using memory change: Success" << endl;
+					cout << "New maximal using memory value: `" << settings.MaxMapping << "`" << endl << endl;
+				} else {
+					cout << PARAMETER_INCORRECT_MESSAGE << endl;
+				}
+				continue;
 			}
 			string result = ConsolePerformer(cmd, &settings);
 			cout << result << endl;
 		}
 	} else if (argv_1 == "-h" || argv_1 == "--help" || argv_1 == "help") {
-		cout << GetManual(false) << endl;
+		Settings settings;
+		cout << GetManual(false, &settings) << endl;
 	} else {
 		Settings settings;
 		if (argc < 3) {
-			cout << "ERROR: Uncorrect parameters" << endl;
+			cout << PARAMETER_INCORRECT_MESSAGE << endl;
 			return 0;
 		}
 		size_t first_param = 1;

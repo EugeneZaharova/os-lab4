@@ -10,6 +10,10 @@
 #include <sys/stat.h>
 #include <vector>
 
+const char SLASH = '/';
+const std::string MAPPING_FATAL_ERROR_MESSAGE = "Reading file: FATAL ERROR\n";
+const std::string PARAMETER_INCORRECT_MESSAGE = "ERROR: Parameter(s) is incorrect\n";
+
 class FileMapping {
 public:
 	int fd;
